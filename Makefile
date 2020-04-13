@@ -13,10 +13,18 @@ clean:
 	rm -f $(APP) *.csv *.png
 
 .PHONY: bench
-bench: refcount.png spinlock.png
+bench: result.csv
 
 result.csv: $(APP)
 	./$(APP) | tee $@
+
+.PHONY: draw
+draw: result.csv plot2d.py
+	python3 plot2d.py --select 'bench_type == "refcount"' --x-axis n_threads --labels bench_mode $< --title 'Refcount'
+	python3 plot2d.py --select 'bench_type == "spinlock"' --x-axis n_threads --labels bench_mode $< --title 'Spinlock'
+
+.PHONY: png
+png: refcount.png spinlock.png
 
 refcount.png: result.csv plot2d.py
 	python3 plot2d.py --select 'bench_type == "refcount"' --x-axis n_threads --labels bench_mode $< $@ --title 'Refcount'

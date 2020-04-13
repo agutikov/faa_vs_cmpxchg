@@ -4,7 +4,7 @@
 Plot 2d lines from csv input.
 
 Usage:
-  plot2d.py INPUT_FILE OUTPUT_FILE --x-axis <x_axis_col_name> --labels <labels_col_name> [ --select <pandas_query> ] [ --title <title> ]
+  plot2d.py INPUT_FILE [OUTPUT_FILE] --x-axis <x_axis_col_name> --labels <labels_col_name> [ --select <pandas_query> ] [ --title <title> ]
 
 INPUT_FILE must be csv-formatted text file with first line of column names.
 
@@ -22,6 +22,7 @@ from docopt import docopt
 from pprint import pprint
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 if __name__ == '__main__':
@@ -54,14 +55,18 @@ if __name__ == '__main__':
         axs[idx].grid(True)
         axs[idx].legend(data.keys(), loc='best')
 
-        max_value = data.values.max()
-        min_value = data.values.min()
+        max_value = np.nanmax(data.values)
+        min_value = np.nanmin(data.values)
 
         scale_factor = (max_value - min_value) / min_value
 
-        if 100 < scale_factor:
+        if 20 < scale_factor:
             axs[idx].set_yscale('log', basey=10)
 
-    plt.savefig(args['OUTPUT_FILE'])
+    output_filename = args['OUTPUT_FILE']
+    if output_filename:
+        plt.savefig(output_filename)
+    else:
+        plt.show()
 
 

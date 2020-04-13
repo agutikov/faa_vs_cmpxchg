@@ -1,5 +1,4 @@
 
-#include <charconv>
 #include <cstdint>
 #include <memory>
 #include <mutex>
@@ -30,7 +29,7 @@ benchmarks_table_t benchmarks {
 
 int main(int argc, const char* argv[])
 {
-    int64_t counter = 1024*1024*32;
+    int64_t counter = 1024000;
     if (argc == 2) {
         counter = strtol(argv[1], 0, 0);
     }

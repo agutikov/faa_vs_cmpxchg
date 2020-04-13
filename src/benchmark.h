@@ -45,20 +45,28 @@ void run_multithread_benchmark(
     }
 
     std::clock_t c_elapsed = std::clock() - c_started;
-    using dd_t = std::chrono::duration<double>;
-    double elapsed = std::chrono::duration_cast<dd_t>(clock::now() - started).count();
+    using dd_t = std::chrono::duration<double, std::nano>;
+    double elapsed_ns = std::chrono::duration_cast<dd_t>(clock::now() - started).count();
 
-    printf("%lu, %s, %s, %f, %lu, %.10f, %lu\n", n_threads, type.c_str(), mode.c_str(), elapsed, c_elapsed, elapsed / counter, c_elapsed * 1000 / counter);
+    printf("%lu, %s, %s, %.10f, %lu\n",
+           n_threads, 
+           type.c_str(),
+           mode.c_str(),
+           elapsed_ns / counter,
+           c_elapsed * 1000 / counter);
+
+    fflush(stdout);
 }
 
 
 void run_benchmarks(const benchmarks_table_t& benchmarks, int64_t counter)
 {
-    printf("n_threads, bench_type, bench_mode, elapsed_real_time_s, elapsed_clocks, s/iteration, clocks*1000/iteration\n");
+    printf("n_threads, bench_type, bench_mode, elapsed time (ns) / iteration, clocks * 1000 / iteration\n");
+    fflush(stdout);
 
     int ncpu = std::thread::hardware_concurrency();
 
-    for (size_t n = 1; n <= ncpu; n *= 2) {
+    for (size_t n = 1; n <= ncpu; n++) {
         for (const auto& [bench_type, bench_modes] : benchmarks) {
             for (const auto& [bench_mode, bench_factory] : bench_modes) {
                 run_multithread_benchmark(n, bench_type, bench_mode, counter, bench_factory(counter / n));

@@ -1,2 +1,4 @@
 bench_faa_vs_cmpxchg
 .vscode
+*.csv
+*.png

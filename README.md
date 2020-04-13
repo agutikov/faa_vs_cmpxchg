@@ -3,7 +3,7 @@ Benchmark C++ standard atomic operations fetch_sub/fetch_add vs. compare_exchang
 
 Run:
 
-$ make
-$ make bench
+$ make  
+$ make bench  
 
 

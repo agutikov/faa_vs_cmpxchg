@@ -13,16 +13,16 @@
 
 benchmarks_table_t benchmarks {
     {"refcount", {
-        {"fetch_sub", &get_shared_ptr_benchmark<faa_shared_ptr>},
-        {"cmpxchg_strong", &get_shared_ptr_benchmark<cmpxchg_strong_shared_ptr>},
-        {"cmpxchg_weak", &get_shared_ptr_benchmark<cmpxchg_weak_shared_ptr>},
-        {"std::shared_ptr", &get_shared_ptr_benchmark<std::shared_ptr>}
+        {"fetch_sub", {&get_shared_ptr_benchmark<faa_shared_ptr>, 0}},
+        {"cmpxchg_strong", {&get_shared_ptr_benchmark<cmpxchg_strong_shared_ptr>, 0}},
+        {"cmpxchg_weak", {&get_shared_ptr_benchmark<cmpxchg_weak_shared_ptr>, 0}},
+        {"std::shared_ptr", {&get_shared_ptr_benchmark<std::shared_ptr>, 0}}
     }},
     {"spinlock", {
-        {"fetch_add", &get_spinlock_benchmark<faa_spinlock>},
-        {"cmpxchg_strong", &get_spinlock_benchmark<cmpxchg_spinlock_strong>},
-        {"cmpxchg_weak", &get_spinlock_benchmark<cmpxchg_spinlock_weak>},
-        {"std::mutex", &get_spinlock_benchmark<std::mutex>}
+        {"fetch_add", {&get_spinlock_benchmark<faa_spinlock>, 6}},
+        {"cmpxchg_strong", {&get_spinlock_benchmark<cmpxchg_spinlock_strong>, 0}},
+        {"cmpxchg_weak", {&get_spinlock_benchmark<cmpxchg_spinlock_weak>, 0}},
+        {"std::mutex", {&get_spinlock_benchmark<std::mutex>, 0}}
     }},
 };
 

@@ -8,6 +8,7 @@
 #include <chrono>
 #include <ctime>
 #include <cstdio>
+#include <tuple>
 
 using benchmark_workload_t = std::function<void(void)>;
 
@@ -17,7 +18,10 @@ using benchmarks_table_t = std::map<
                                std::string,
                                std::map<
                                    std::string,
-                                   benchmark_workload_factory_t
+                                   std::tuple<
+                                       benchmark_workload_factory_t,
+                                       size_t
+                                   >
                                >
                            >;
 
@@ -68,7 +72,12 @@ void run_benchmarks(const benchmarks_table_t& benchmarks, int64_t counter)
 
     for (size_t n = 1; n <= ncpu; n++) {
         for (const auto& [bench_type, bench_modes] : benchmarks) {
-            for (const auto& [bench_mode, bench_factory] : bench_modes) {
+            for (const auto& [bench_mode, bench] : bench_modes) {
+                auto bench_factory = std::get<0>(bench);
+                auto threads_limit = std::get<1>(bench);
+                if (threads_limit > 0 && n > threads_limit) {
+                    continue;
+                }
                 run_multithread_benchmark(n, bench_type, bench_mode, counter, bench_factory(counter / n));
             }
         }

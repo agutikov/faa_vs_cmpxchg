@@ -26,10 +26,12 @@ CHART := -B
 
 .PHONY: show
 show: result.csv plot2d.py
-	$(PLOT) -q 'bench_type == "spinlock" & bench_mode != "fetch_add"' -y clock_ns_per_iter -H $<
-	$(REFCOUNT_PLOT) $< -t 'Refcount'
-	$(SPINLOCK_PLOT) $< -t 'Spinlock'
-	$(PLOT) -q 'bench_type == "spinlock" & bench_mode != "fetch_add"' $< -t 'Spinlock'
+	$(REFCOUNT_PLOT) $(CHART) -y clock_ns_per_iter -r 'std::shared_ptr' $<
+	$(REFCOUNT_PLOT) $(CHART) -y latency_ns -r 'std::shared_ptr' $<
+	#$(PLOT) -q 'bench_type == "spinlock" & bench_mode != "fetch_add"' -y clock_ns_per_iter -H $<
+	#$(REFCOUNT_PLOT) $< -t 'Refcount'
+	#$(SPINLOCK_PLOT) $< -t 'Spinlock'
+	#$(PLOT) -q 'bench_type == "spinlock" & bench_mode != "fetch_add"' $< -t 'Spinlock'
 
 .PHONY: png
 png: result.csv plot2d.py

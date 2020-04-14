@@ -40,6 +40,7 @@ struct base_shared_ptr
     {
         if (block != nullptr) {
             if (block->release()) {
+                std::atomic_thread_fence(std::memory_order_seq_cst);
                 delete block;
             }
             block = nullptr;

@@ -6,14 +6,6 @@ struct faa_decref
 {
     static int decref(std::atomic<int>* r)
     {
-        return std::atomic_fetch_sub(r, 1);
-    }
-};
-
-struct faa_relaxed_decref
-{
-    static int decref(std::atomic<int>* r)
-    {
         return std::atomic_fetch_sub_explicit(r, 1, std::memory_order_relaxed);
     }
 };
@@ -21,5 +13,3 @@ struct faa_relaxed_decref
 template<typename T>
 using faa_shared_ptr = base_shared_ptr<T, faa_decref>;
 
-template<typename T>
-using faa_relaxed_shared_ptr = base_shared_ptr<T, faa_relaxed_decref>;

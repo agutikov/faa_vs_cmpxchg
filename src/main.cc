@@ -21,8 +21,7 @@ benchmarks_table_t benchmarks {
         {"std::mutex", &get_spinlock_benchmark<std::mutex>, 0},
     }},
     {"refcount", {
-        {"fetch_add", &get_shared_ptr_benchmark<faa_shared_ptr>, 0},
-        {"fetch_add_relaxed", &get_shared_ptr_benchmark<faa_relaxed_shared_ptr>, 0},
+        {"fetch_sub", &get_shared_ptr_benchmark<faa_shared_ptr>, 0},
         {"cmpxchg_strong", &get_shared_ptr_benchmark<cmpxchg_strong_shared_ptr>, 0},
         {"cmpxchg_weak", &get_shared_ptr_benchmark<cmpxchg_weak_shared_ptr>, 0},
         {"std::shared_ptr", &get_shared_ptr_benchmark<std::shared_ptr>, 0},

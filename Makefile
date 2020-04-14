@@ -16,31 +16,33 @@ clean:
 bench: result.csv
 
 result.csv: $(APP)
-	./$(APP) 8000000 | tee $@
+	./$(APP) | tee $@
 
 
 PLOT := python3 plot2d.py  -x '\# threads' -l bench_mode
 REFCOUNT_PLOT := $(PLOT) -q 'bench_type == "refcount"' 
 SPINLOCK_PLOT := $(PLOT) -q 'bench_type == "spinlock"'
+CHART := -B
 
 .PHONY: show
 show: result.csv plot2d.py
+	$(PLOT) -q 'bench_type == "spinlock" & bench_mode != "fetch_add"' -y clock_ns_per_iter -H $<
 	$(REFCOUNT_PLOT) $< -t 'Refcount'
 	$(SPINLOCK_PLOT) $< -t 'Spinlock'
 	$(PLOT) -q 'bench_type == "spinlock" & bench_mode != "fetch_add"' $< -t 'Spinlock'
 
 .PHONY: png
 png: result.csv plot2d.py
-	$(REFCOUNT_PLOT) -y clock_ns_per_iter -b $< refcount_clock.png
-	$(REFCOUNT_PLOT) -y latency_ns -b $< refcount_time.png
-	$(SPINLOCK_PLOT) -y clock_ns_per_iter -b $< spinlock_clock.png
-	$(SPINLOCK_PLOT) -y latency_ns -b $< spinlock_time.png
-	$(PLOT) -q 'bench_type == "spinlock" & bench_mode != "fetch_add"' -y clock_ns_per_iter -b $< spinlock_clock_fast.png
-	$(PLOT) -q 'bench_type == "spinlock" & bench_mode != "fetch_add"' -y latency_ns -b $< spinlock_time_fast.png
-	$(REFCOUNT_PLOT) -y clock_ns_per_iter -b -r 'std::shared_ptr' $< refcount_clock_base.png
-	$(REFCOUNT_PLOT) -y latency_ns -b -r 'std::shared_ptr' $< refcount_time_base.png
-	$(SPINLOCK_PLOT) -y clock_ns_per_iter -b -r 'std::mutex' $< spinlock_clock_base.png
-	$(SPINLOCK_PLOT) -y latency_ns -b -r 'std::mutex' $< spinlock_time_base.png
-	$(PLOT) -q 'bench_type == "spinlock" & bench_mode != "fetch_add"' -y clock_ns_per_iter -b -r 'std::mutex' $< spinlock_clock_fast_base.png
-	$(PLOT) -q 'bench_type == "spinlock" & bench_mode != "fetch_add"' -y latency_ns -b -r 'std::mutex' $< spinlock_time_fast_base.png
+	$(REFCOUNT_PLOT) $(CHART) -y clock_ns_per_iter $< refcount_clock.png
+	$(REFCOUNT_PLOT) $(CHART) -y latency_ns $< refcount_time.png
+	$(SPINLOCK_PLOT) $(CHART) -y clock_ns_per_iter $< spinlock_clock.png
+	$(SPINLOCK_PLOT) $(CHART) -y latency_ns $< spinlock_time.png
+	$(PLOT) $(CHART) -q 'bench_type == "spinlock" & bench_mode != "fetch_add"' -y clock_ns_per_iter $< spinlock_clock_fast.png
+	$(PLOT) $(CHART) -q 'bench_type == "spinlock" & bench_mode != "fetch_add"' -y latency_ns $< spinlock_time_fast.png
+	$(REFCOUNT_PLOT) $(CHART) -y clock_ns_per_iter -r 'std::shared_ptr' $< refcount_clock_base.png
+	$(REFCOUNT_PLOT) $(CHART) -y latency_ns -r 'std::shared_ptr' $< refcount_time_base.png
+	$(SPINLOCK_PLOT) $(CHART) -y clock_ns_per_iter -r 'std::mutex' $< spinlock_clock_base.png
+	$(SPINLOCK_PLOT) $(CHART) -y latency_ns -r 'std::mutex' $< spinlock_time_base.png
+	$(PLOT) $(CHART) -q 'bench_type == "spinlock" & bench_mode != "fetch_add"' -y clock_ns_per_iter -r 'std::mutex' $< spinlock_clock_fast_base.png
+	$(PLOT) $(CHART) -q 'bench_type == "spinlock" & bench_mode != "fetch_add"' -y latency_ns -r 'std::mutex' $< spinlock_time_fast_base.png
 

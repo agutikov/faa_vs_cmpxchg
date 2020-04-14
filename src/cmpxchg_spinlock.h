@@ -3,58 +3,6 @@
 #include <atomic>
 
 
-struct spinlock1
-{
-    std::atomic<bool> locked = false;
-
-    void unlock()
-    {
-        locked = false;
-    }
-
-    void lock()
-    {
-        bool v = false;
-        if (!std::atomic_compare_exchange_weak(&locked, &v, true)) {
-            for (;;) {
-                __asm ("pause");
-                v = locked.load();
-                if (!v) {
-                    if (std::atomic_compare_exchange_weak(&locked, &v, true)) {
-                        break;
-                    }
-                }
-            }
-        }
-    }
-};
-
-struct spinlock2
-{
-    std::atomic<bool> locked = false;
-
-    void unlock()
-    {
-        locked = false;
-    }
-
-    void lock()
-    {
-        bool v = false;
-        if (!std::atomic_compare_exchange_weak(&locked, &v, true)) {
-            for (;;) {
-                v = locked.load();
-                if (!v) {
-                    if (std::atomic_compare_exchange_weak(&locked, &v, true)) {
-                        break;
-                    }
-                }
-                __asm ("pause");
-            }
-        }
-    }
-};
-
 template<typename T, typename N>
 struct base_spinlock
 {

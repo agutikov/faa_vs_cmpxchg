@@ -23,12 +23,12 @@ struct base_shared_ptr
             value = nullptr;
         }
 
-        void inc()
+        inline void acquire()
         {
             refcount++;
         }
 
-        bool dec()
+        inline bool release()
         {
             return D::decref(&refcount) == 1;
         }
@@ -38,12 +38,12 @@ struct base_shared_ptr
 
     void reset()
     {
-        if (block) {
-            if (block->dec()) {
+        if (block != nullptr) {
+            if (block->release()) {
                 delete block;
             }
+            block = nullptr;
         }
-        block = nullptr;
     }
 
     base_shared_ptr(T* v)
@@ -54,13 +54,13 @@ struct base_shared_ptr
     base_shared_ptr(const base_shared_ptr<T, D>& r)
     {
         block = r.block;
-        block->inc();
+        block->acquire();
     }
 
     base_shared_ptr(base_shared_ptr<T, D>&& r)
     {
         block = r.block;
-        block->inc();
+        block->acquire();
         r.reset();
     }
 
@@ -73,7 +73,7 @@ struct base_shared_ptr
     {
         reset();
         block = r.block;
-        block->inc();
+        block->acquire();
         return *this;
     }
 
@@ -81,7 +81,7 @@ struct base_shared_ptr
     {
         reset();
         block = r.block;
-        block->inc();
+        block->acquire();
         r.reset();
         return *this;
     }

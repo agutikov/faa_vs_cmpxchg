@@ -4,9 +4,9 @@
 
 struct faa_decref
 {
-    static bool decref(std::atomic<int>* r)
+    static int decref(std::atomic<int>* r)
     {
-        return std::atomic_fetch_sub(r, 1) == 1;
+        return std::atomic_fetch_sub(r, 1);
     }
 };
 

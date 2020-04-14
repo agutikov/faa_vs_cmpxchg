@@ -3,7 +3,7 @@
 #include "benchmark.h"
 
 
-struct spinlock_benchmark_data_t
+struct spinlock_benchmark_data
 {
     size_t value1 = 0;
     uint8_t padding[8192];
@@ -11,7 +11,7 @@ struct spinlock_benchmark_data_t
 };
 
 template<typename spinlock_t>
-void spinlock_benchmark(spinlock_t* slock, int64_t counter, size_t id, spinlock_benchmark_data_t* global_data)
+void spinlock_benchmark(spinlock_t* slock, int64_t counter, size_t id, spinlock_benchmark_data* global_data)
 {
     while (counter > 0) {
         slock->lock();
@@ -38,7 +38,7 @@ benchmark_workload_t get_spinlock_benchmark(int64_t counter)
 {
     spinlock_t* slock = new spinlock_t;
 
-    spinlock_benchmark_data_t* global_data = new spinlock_benchmark_data_t;
+    spinlock_benchmark_data* global_data = new spinlock_benchmark_data;
 
     return [slock, counter, global_data] () {
         std::hash<std::thread::id> hasher;

@@ -30,7 +30,7 @@ struct base_shared_ptr
 
         bool dec()
         {
-            return D::decref(&refcount);
+            return D::decref(&refcount) == 1;
         }
     };
 

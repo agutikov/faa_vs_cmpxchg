@@ -16,19 +16,31 @@ clean:
 bench: result.csv
 
 result.csv: $(APP)
-	./$(APP) | tee $@
+	./$(APP) 8000000 | tee $@
 
-.PHONY: draw
-draw: result.csv plot2d.py
-	python3 plot2d.py --select 'bench_type == "refcount"' --x-axis n_threads --labels bench_mode $< --title 'Refcount'
-	python3 plot2d.py --select 'bench_type == "spinlock"' --x-axis n_threads --labels bench_mode $< --title 'Spinlock'
+
+PLOT := python3 plot2d.py  -x '\# threads' -l bench_mode
+REFCOUNT_PLOT := $(PLOT) -q 'bench_type == "refcount"' 
+SPINLOCK_PLOT := $(PLOT) -q 'bench_type == "spinlock"'
+
+.PHONY: show
+show: result.csv plot2d.py
+	$(REFCOUNT_PLOT) $< -t 'Refcount'
+	$(SPINLOCK_PLOT) $< -t 'Spinlock'
+	$(PLOT) -q 'bench_type == "spinlock" & bench_mode != "fetch_add"' $< -t 'Spinlock'
 
 .PHONY: png
-png: refcount.png spinlock.png
-
-refcount.png: result.csv plot2d.py
-	python3 plot2d.py --select 'bench_type == "refcount"' --x-axis n_threads --labels bench_mode $< $@ --title 'Refcount'
-
-spinlock.png: result.csv plot2d.py
-	python3 plot2d.py --select 'bench_type == "spinlock"' --x-axis n_threads --labels bench_mode $< $@ --title 'Spinlock'
+png: result.csv plot2d.py
+	$(REFCOUNT_PLOT) -y clock_ns_per_iter -b $< refcount_clock.png
+	$(REFCOUNT_PLOT) -y latency_ns -b $< refcount_time.png
+	$(SPINLOCK_PLOT) -y clock_ns_per_iter -b $< spinlock_clock.png
+	$(SPINLOCK_PLOT) -y latency_ns -b $< spinlock_time.png
+	$(PLOT) -q 'bench_type == "spinlock" & bench_mode != "fetch_add"' -y clock_ns_per_iter -b $< spinlock_clock_fast.png
+	$(PLOT) -q 'bench_type == "spinlock" & bench_mode != "fetch_add"' -y latency_ns -b $< spinlock_time_fast.png
+	$(REFCOUNT_PLOT) -y clock_ns_per_iter -b -r 'std::shared_ptr' $< refcount_clock_base.png
+	$(REFCOUNT_PLOT) -y latency_ns -b -r 'std::shared_ptr' $< refcount_time_base.png
+	$(SPINLOCK_PLOT) -y clock_ns_per_iter -b -r 'std::mutex' $< spinlock_clock_base.png
+	$(SPINLOCK_PLOT) -y latency_ns -b -r 'std::mutex' $< spinlock_time_base.png
+	$(PLOT) -q 'bench_type == "spinlock" & bench_mode != "fetch_add"' -y clock_ns_per_iter -b -r 'std::mutex' $< spinlock_clock_fast_base.png
+	$(PLOT) -q 'bench_type == "spinlock" & bench_mode != "fetch_add"' -y latency_ns -b -r 'std::mutex' $< spinlock_time_fast_base.png
 

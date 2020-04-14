@@ -2,47 +2,123 @@
 
 #include <atomic>
 
-struct cmpxchg_spinlock_base
+
+struct spinlock1
 {
-    std::atomic<int> locked = 0;
+    std::atomic<bool> locked = false;
 
     void unlock()
     {
-        locked = 0;
+        locked = false;
+    }
+
+    void lock()
+    {
+        bool v = false;
+        if (!std::atomic_compare_exchange_weak(&locked, &v, true)) {
+            for (;;) {
+                __asm ("pause");
+                v = locked.load();
+                if (!v) {
+                    if (std::atomic_compare_exchange_weak(&locked, &v, true)) {
+                        break;
+                    }
+                }
+            }
+        }
     }
 };
 
-struct cmpxchg_spinlock_weak : cmpxchg_spinlock_base
+struct spinlock2
 {
+    std::atomic<bool> locked = false;
+
+    void unlock()
+    {
+        locked = false;
+    }
+
     void lock()
     {
-        int v;
-        for (;;) {
-            v = locked.load();
-            if (v == 0) {
-                if (std::atomic_compare_exchange_weak(&locked, &v, 1)) {
-                    break;
+        bool v = false;
+        if (!std::atomic_compare_exchange_weak(&locked, &v, true)) {
+            for (;;) {
+                v = locked.load();
+                if (!v) {
+                    if (std::atomic_compare_exchange_weak(&locked, &v, true)) {
+                        break;
+                    }
                 }
+                __asm ("pause");
             }
-        };
+        }
     }
 };
 
-struct cmpxchg_spinlock_strong : cmpxchg_spinlock_base
+template<typename T, typename N>
+struct base_spinlock
 {
+    std::atomic<int> locked = false;
+
+    void unlock()
+    {
+        locked = false;
+    }
+
     void lock()
     {
-        int v;
-        for (;;) {
-            v = locked.load();
-            if (v == 0) {
-                if (std::atomic_compare_exchange_strong(&locked, &v, 1)) {
-                    break;
+        if (!T::trylock(&locked)) {
+            for (;;) {
+                if (locked.load() == 0) {
+                    if (T::trylock(&locked)) {
+                        break;
+                    }
                 }
+                N::nop();
             }
-        };
+        }
     }
 };
+
+struct empty_nop
+{
+    static void nop() {}
+};
+
+struct pause_nop
+{
+    static void nop()
+    {
+        __asm ("pause");
+    }
+};
+
+struct cmpxchg_weak_trylock
+{
+    static bool trylock(std::atomic<int>* lock)
+    {
+        int v = 0;
+        return std::atomic_compare_exchange_weak(lock, &v, 1);
+    }
+};
+
+struct cmpxchg_strong_trylock
+{
+    static bool trylock(std::atomic<int>* lock)
+    {
+        int v = 0;
+        return std::atomic_compare_exchange_strong(lock, &v, 1);
+    }
+};
+
+using cmpxchg_weak_spinlock = base_spinlock<cmpxchg_weak_trylock, empty_nop>;
+
+using cmpxchg_strong_spinlock = base_spinlock<cmpxchg_strong_trylock, empty_nop>;
+
+using cmpxchg_weak_pause_spinlock = base_spinlock<cmpxchg_weak_trylock, pause_nop>;
+
+using cmpxchg_strong_pause_spinlock = base_spinlock<cmpxchg_strong_trylock, pause_nop>;
+
 
 
 

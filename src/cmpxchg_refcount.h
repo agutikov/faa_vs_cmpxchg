@@ -4,25 +4,25 @@
 
 struct cmpxchg_strong_decref
 {
-    static bool decref(std::atomic<int>* r)
+    static int decref(std::atomic<int>* r)
     {
         int v;
         do {
             v = r->load();
         } while (!std::atomic_compare_exchange_strong(r, &v, v-1));
-        return v == 1;
+        return v;
     }
 };
 
 struct cmpxchg_weak_decref
 {
-    static bool decref(std::atomic<int>* r)
+    static int decref(std::atomic<int>* r)
     {
         int v;
         do {
             v = r->load();
         } while (!std::atomic_compare_exchange_weak(r, &v, v-1));
-        return v == 1;
+        return v;
     }
 };
 

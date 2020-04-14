@@ -7,12 +7,12 @@ Two types of bencmarks:
   - `std::atomic::compare_exchange_weak()`
   - `std::atomic::compare_exchange_strong()`
   - `std::atomic_fetch_sub()`
-  - and compare them to `std::shared_ptr`
+  - with compare to `std::shared_ptr`
 - *spinlock* - aggressive concurrent usage of spinlock, implemented with:
   - `std::atomic::compare_exchange_weak()`
   - `std::atomic::compare_exchange_strong()`
   - `std::atomic_fetch_add()`
-  - and compare them to`std::mutex`
+  - with compare to `std::mutex`
 
 
 

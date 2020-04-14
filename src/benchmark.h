@@ -9,21 +9,22 @@
 #include <ctime>
 #include <cstdio>
 #include <tuple>
+#include <list>
 
 using benchmark_workload_t = std::function<void(void)>;
 
 using benchmark_workload_factory_t = std::function<benchmark_workload_t(int64_t)>;
 
 using benchmarks_table_t = std::map<
-                               std::string,
-                               std::map<
-                                   std::string,
-                                   std::tuple<
-                                       benchmark_workload_factory_t,
-                                       size_t
-                                   >
-                               >
-                           >;
+                                std::string, // bench_type
+                                std::list<
+                                    std::tuple<
+                                        std::string, // bench_mode
+                                        benchmark_workload_factory_t, // workload_factory
+                                        size_t // thread number limit
+                                    >
+                                >
+                            >;
 
 void run_multithread_benchmark(
                         size_t n_threads,
@@ -52,11 +53,13 @@ void run_multithread_benchmark(
     using dd_t = std::chrono::duration<double, std::nano>;
     double elapsed_ns = std::chrono::duration_cast<dd_t>(clock::now() - started).count();
 
-    printf("%lu, %s, %s, %.10f, %lu\n",
+    printf("%lu, %s, %s, %f, %.10f, %lu, %lu\n",
            n_threads, 
            type.c_str(),
            mode.c_str(),
+           elapsed_ns,
            elapsed_ns / counter,
+           c_elapsed * 1000,
            c_elapsed * 1000 / counter);
 
     fflush(stdout);
@@ -65,16 +68,14 @@ void run_multithread_benchmark(
 
 void run_benchmarks(const benchmarks_table_t& benchmarks, int64_t counter)
 {
-    printf("n_threads, bench_type, bench_mode, elapsed time (ns) / iteration, clocks * 1000 / iteration\n");
+    printf("# threads, bench_type, bench_mode, elapsed_ns, latency_ns, elapsed_clock_ns, clock_ns_per_iter\n");
     fflush(stdout);
 
     int ncpu = std::thread::hardware_concurrency();
 
     for (size_t n = 1; n <= ncpu; n++) {
         for (const auto& [bench_type, bench_modes] : benchmarks) {
-            for (const auto& [bench_mode, bench] : bench_modes) {
-                auto bench_factory = std::get<0>(bench);
-                auto threads_limit = std::get<1>(bench);
+            for (const auto& [bench_mode, bench_factory, threads_limit] : bench_modes) {
                 if (threads_limit > 0 && n > threads_limit) {
                     continue;
                 }

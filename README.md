@@ -1,6 +1,6 @@
-# fetch_sub/fetch_add vs. compare_exchange
+# fetch_add vs. compare_exchange
 
-Benchmark C++ standard atomic operations fetch_sub/fetch_add vs. compare_exchange.
+Benchmark C++ standard atomic operations fetch_add and compare_exchange.
 
 Two types of bencmarks:
 - *refcount* - aggressive concurrent usage of shared_ptr, implemented with:

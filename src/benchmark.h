@@ -49,18 +49,18 @@ void run_multithread_benchmark(
         thread.join();
     }
 
-    std::clock_t c_elapsed = std::clock() - c_started;
+    double cpu_elapsed_ns = (double (std::clock() - c_started)) * 1000000000 / CLOCKS_PER_SEC;
     using dd_t = std::chrono::duration<double, std::nano>;
     double elapsed_ns = std::chrono::duration_cast<dd_t>(clock::now() - started).count();
 
-    printf("%lu, %s, %s, %f, %.10f, %lu, %lu\n",
+    printf("%lu, %s, %s, %f, %.10f, %f, %f\n",
            n_threads, 
            type.c_str(),
            mode.c_str(),
            elapsed_ns,
            elapsed_ns / counter,
-           c_elapsed * 1000,
-           c_elapsed * 1000 / counter);
+           cpu_elapsed_ns,
+           cpu_elapsed_ns / counter);
 
     fflush(stdout);
 }

@@ -13,6 +13,7 @@
 
 benchmarks_table_t benchmarks {
     {"spinlock", {
+        {"fetch_or", &get_spinlock_benchmark<for_spinlock>, 0},
         {"fetch_add", &get_spinlock_benchmark<faa_spinlock>, 7},
         {"cmpxchg_strong", &get_spinlock_benchmark<cmpxchg_strong_spinlock>, 0},
         {"cmpxchg_strong_pause", &get_spinlock_benchmark<cmpxchg_strong_pause_spinlock>, 0},

@@ -19,3 +19,20 @@ struct faa_spinlock
     }
 };
 
+struct for_spinlock
+{
+    std::atomic<int> locked = 0;
+
+    void lock()
+    {
+        while (std::atomic_fetch_or(&locked, 1) != 0) {
+            __asm("pause");
+        }
+    }
+
+    void unlock()
+    {
+        locked = 0;
+    }
+};
+

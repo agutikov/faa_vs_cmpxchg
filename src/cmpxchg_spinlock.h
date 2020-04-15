@@ -6,7 +6,7 @@
 template<typename T, typename N>
 struct base_spinlock
 {
-    std::atomic<int> locked = false;
+    std::atomic<bool> locked = false;
 
     void unlock()
     {
@@ -43,19 +43,19 @@ struct pause_nop
 
 struct cmpxchg_weak_trylock
 {
-    static bool trylock(std::atomic<int>* lock)
+    static bool trylock(std::atomic<bool>* lock)
     {
-        int v = 0;
-        return std::atomic_compare_exchange_weak(lock, &v, 1);
+        bool v = false;
+        return std::atomic_compare_exchange_weak(lock, &v, true);
     }
 };
 
 struct cmpxchg_strong_trylock
 {
-    static bool trylock(std::atomic<int>* lock)
+    static bool trylock(std::atomic<bool>* lock)
     {
-        int v = 0;
-        return std::atomic_compare_exchange_strong(lock, &v, 1);
+        bool v = false;
+        return std::atomic_compare_exchange_strong(lock, &v, true);
     }
 };
 

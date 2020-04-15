@@ -27,26 +27,33 @@ from pprint import pprint
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+from zlib import crc32
+
+
+def legend_to_colors(keys):
+    return ['#%06X' % (crc32(k.encode('utf-8')) % 0xffffff) for k in keys]
 
 
 def bar_plot(ax, df):
     n = len(df.keys())
     w = 1 / (n*1.5)
+    colors = legend_to_colors(df.keys())
 
     x = df.index.values
-    for h_idx, heights_col in enumerate(df.keys()):
+    for idx, heights_col in enumerate(df.keys()):
         y = df[heights_col].values
-        ax.bar(x + w*(h_idx - n/2 + 0.5), y, width=w, align='center')
+        ax.bar(x + w*(idx - n/2 + 0.5), y, width=w, align='center', color=colors[idx])
 
 
 def hbar_plot(ax, df):
     n = len(df.keys())
     w = 1 / (n*1.5)
+    colors = legend_to_colors(df.keys())
 
     x = df.index.values
-    for h_idx, heights_col in enumerate(df.keys()):
+    for idx, heights_col in enumerate(df.keys()):
         y = df[heights_col].values
-        ax.barh(x + w*(h_idx - n/2 + 0.5), y, height=w, align='center')
+        ax.barh(x + w*(idx - n/2 + 0.5), y, height=w, align='center', color=colors[idx])
 
 
 def baseline_div(df, baseline_col_name):
@@ -71,7 +78,8 @@ def auto_log_scale(ax, df, horizontal):
 
 
 def line_plot(ax, df):
-    ax.plot(df, linewidth=3)
+    colors = legend_to_colors(df.keys())
+    ax.plot(df, linewidth=3, colors=colors)
     ax.grid(True)
 
 

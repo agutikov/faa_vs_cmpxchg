@@ -3,6 +3,8 @@
 #include <atomic>
 
 
+// test-and-test-and-set spinlock parameterized by trylock primitive (weak/strong CAS)
+// and spin-wait hint (no-op or `pause`).
 template<typename T, typename N>
 struct base_spinlock
 {
@@ -10,14 +12,18 @@ struct base_spinlock
 
     void unlock()
     {
-        locked = false;
+        // release: critical-section writes happen-before the next lock holder's acquire
+        locked.store(false, std::memory_order_release);
     }
 
     void lock()
     {
+        // fast path: try once without spinning
         if (!T::trylock(&locked)) {
             for (;;) {
-                if (locked.load() == 0) {
+                // outer test is just a hint - relaxed avoids cache-line ping-pong while spinning;
+                // the CAS below does the real synchronization
+                if (locked.load(std::memory_order_relaxed) == 0) {
                     if (T::trylock(&locked)) {
                         break;
                     }
@@ -37,6 +43,7 @@ struct pause_nop
 {
     static void nop()
     {
+        // x86 pause hint: yields the pipeline and signals a spin-wait to the CPU
         __asm ("pause");
     }
 };
@@ -46,7 +53,10 @@ struct cmpxchg_weak_trylock
     static bool trylock(std::atomic<bool>* lock)
     {
         bool v = false;
-        return std::atomic_compare_exchange_weak(lock, &v, true);
+        // success=acquire (enter critical section); failure=relaxed (will be retried)
+        // weak: may fail spuriously, but trylock callers tolerate that
+        return std::atomic_compare_exchange_weak_explicit(lock, &v, true,
+                std::memory_order_acquire, std::memory_order_relaxed);
     }
 };
 
@@ -55,7 +65,9 @@ struct cmpxchg_strong_trylock
     static bool trylock(std::atomic<bool>* lock)
     {
         bool v = false;
-        return std::atomic_compare_exchange_strong(lock, &v, true);
+        // strong: no spurious failures - one-shot trylock semantics
+        return std::atomic_compare_exchange_strong_explicit(lock, &v, true,
+                std::memory_order_acquire, std::memory_order_relaxed);
     }
 };
 

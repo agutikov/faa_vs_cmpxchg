@@ -72,14 +72,15 @@ def auto_log_scale(ax, df, horizontal):
 
     if 20 < scale_factor:
         if horizontal:
-            ax.set_xscale('log', basex=10)
+            ax.set_xscale('log', base=10)
         else:
-            ax.set_yscale('log', basey=10)
+            ax.set_yscale('log', base=10)
 
 
 def line_plot(ax, df):
     colors = legend_to_colors(df.keys())
-    ax.plot(df, linewidth=3, colors=colors)
+    for idx, col in enumerate(df.keys()):
+        ax.plot(df.index.values, df[col].values, linewidth=2, color=colors[idx], marker='o', label=col)
     ax.grid(True)
 
 

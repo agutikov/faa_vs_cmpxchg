@@ -6,10 +6,10 @@ struct cmpxchg_strong_decref
 {
     static int decref(std::atomic<int>* r)
     {
-        int v;
-        do {
-            v = r->load();
-        } while (!std::atomic_compare_exchange_strong(r, &v, v-1));
+        // initial load only - failed CAS already writes the observed value back into v
+        int v = r->load(std::memory_order_relaxed);
+        // success=release pairs with the acquire fence in reset(); failure=relaxed (just retry)
+        while (!std::atomic_compare_exchange_strong_explicit(r, &v, v-1, std::memory_order_release, std::memory_order_relaxed));
         return v;
     }
 };
@@ -18,10 +18,10 @@ struct cmpxchg_weak_decref
 {
     static int decref(std::atomic<int>* r)
     {
-        int v;
-        do {
-            v = r->load();
-        } while (!std::atomic_compare_exchange_weak(r, &v, v-1));
+        // initial load only - failed CAS already writes the observed value back into v
+        int v = r->load(std::memory_order_relaxed);
+        // weak may fail spuriously even when *r == v; the retry loop absorbs that
+        while (!std::atomic_compare_exchange_weak_explicit(r, &v, v-1, std::memory_order_release, std::memory_order_relaxed));
         return v;
     }
 };

@@ -32,7 +32,7 @@ benchmarks_table_t benchmarks {
 
 int main(int argc, const char* argv[])
 {
-    int64_t counter = 1024000;
+    int64_t counter = 1'000'000;
     if (argc == 2) {
         counter = strtol(argv[1], 0, 0);
     }

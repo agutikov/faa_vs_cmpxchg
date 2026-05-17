@@ -25,11 +25,13 @@ struct base_shared_ptr
 
         inline void acquire()
         {
-            refcount++;
+            // relaxed: refcount increment doesn't need to synchronize anything
+            refcount.fetch_add(1, std::memory_order_relaxed);
         }
 
         inline bool release()
         {
+            // returns true on the final decrement (pre-decrement value == 1)
             return D::decref(&refcount) == 1;
         }
     };
@@ -40,7 +42,9 @@ struct base_shared_ptr
     {
         if (block != nullptr) {
             if (block->release()) {
-                std::atomic_thread_fence(std::memory_order_seq_cst);
+                // acquire fence pairs with the release-decrements from all other threads,
+                // ensuring their writes happen-before ~shared_ptr_block runs
+                std::atomic_thread_fence(std::memory_order_acquire);
                 delete block;
             }
             block = nullptr;
@@ -54,15 +58,16 @@ struct base_shared_ptr
 
     base_shared_ptr(const base_shared_ptr<T, D>& r)
     {
+        // copy: share the block, bump the refcount
         block = r.block;
         block->acquire();
     }
 
     base_shared_ptr(base_shared_ptr<T, D>&& r)
     {
+        // move: steal the block - no refcount change needed
         block = r.block;
-        block->acquire();
-        r.reset();
+        r.block = nullptr;
     }
 
     ~base_shared_ptr()
@@ -80,10 +85,10 @@ struct base_shared_ptr
 
     base_shared_ptr<T, D>& operator =(base_shared_ptr<T, D>&& r)
     {
+        // move-assign: drop ours, steal theirs - again no refcount change for the steal
         reset();
         block = r.block;
-        block->acquire();
-        r.reset();
+        r.block = nullptr;
         return *this;
     }
 

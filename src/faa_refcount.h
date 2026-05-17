@@ -6,7 +6,8 @@ struct faa_decref
 {
     static int decref(std::atomic<int>* r)
     {
-        return std::atomic_fetch_sub_explicit(r, 1, std::memory_order_relaxed);
+        // release: writes through the shared object happen-before the decrement other threads observe
+        return std::atomic_fetch_sub_explicit(r, 1, std::memory_order_release);
     }
 };
 
